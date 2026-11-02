@@ -1,0 +1,37 @@
+.add {
+  display: flex;
+  gap: var(--s-2);
+  margin-bottom: var(--s-5);
+}
+
+.list {
+  display: block;
+}
+
+.item {
+  display: flex;
+  align-items: center;
+  gap: var(--s-2);
+  min-height: 56px;
+  border-bottom: 1px solid var(--line);
+}
+
+.name {
+  flex: 1;
+  min-width: 0;
+  font-size: var(--fs-md);
+  overflow-wrap: anywhere;
+  padding: var(--s-3) 0;
+}
+
+.rename {
+  flex: 1;
+  padding: var(--s-2) 0;
+}
+
+@media (max-width: 859px) {
+  .add .input,
+  .add input {
+    min-width: 0;
+  }
+}

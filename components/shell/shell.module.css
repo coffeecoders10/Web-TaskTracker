@@ -1,0 +1,193 @@
+.shell {
+  min-height: 100dvh;
+}
+
+.skip {
+  position: fixed;
+  left: var(--s-3);
+  top: var(--s-3);
+  z-index: 100;
+  padding: var(--s-2) var(--s-3);
+  border-radius: var(--radius-sm);
+  background: var(--accent);
+  color: var(--accent-ink);
+  font-weight: 600;
+  transform: translateY(-200%);
+}
+.skip:focus-visible {
+  transform: none;
+}
+
+/* ------------------------------ Mobile first ------------------------------ */
+.sidebar {
+  display: none;
+}
+
+.main {
+  padding: var(--s-6) 20px calc(var(--tabbar-h) + var(--safe-bottom) + var(--s-7));
+}
+
+.content {
+  max-width: 640px;
+  margin-inline: auto;
+}
+
+.tabbar {
+  position: fixed;
+  z-index: 50;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  display: grid;
+  grid-auto-flow: column;
+  grid-auto-columns: 1fr;
+  height: calc(var(--tabbar-h) + var(--safe-bottom));
+  padding-bottom: var(--safe-bottom);
+  background: oklch(0.2 0.015 250 / 0.94);
+  backdrop-filter: blur(12px);
+  border-top: 1px solid var(--line);
+}
+
+.tab {
+  display: grid;
+  justify-items: center;
+  align-content: center;
+  gap: 3px;
+  color: var(--text-3);
+  font-size: var(--fs-xs);
+  font-weight: 500;
+  -webkit-tap-highlight-color: transparent;
+  transition: color var(--dur-fast) linear;
+}
+.tab[aria-current="page"] {
+  color: var(--accent);
+}
+
+/* -------------------------------- Desktop -------------------------------- */
+@media (min-width: 860px) {
+  .tabbar {
+    display: none;
+  }
+
+  .sidebar {
+    position: fixed;
+    inset: 0 auto 0 0;
+    width: var(--sidebar-w);
+    display: flex;
+    flex-direction: column;
+    padding: var(--s-6) var(--s-4);
+    background: var(--bg-raised);
+    border-right: 1px solid var(--line);
+  }
+
+  .wordmark {
+    font-family: var(--font-display);
+    font-size: 1.75rem;
+    letter-spacing: -0.01em;
+    padding: 0 var(--s-3);
+    margin-bottom: var(--s-6);
+    line-height: 1.2;
+  }
+
+  .sideNav {
+    display: grid;
+    gap: 2px;
+  }
+
+  .sideLink {
+    display: flex;
+    align-items: center;
+    gap: var(--s-3);
+    min-height: 40px;
+    padding: 0 var(--s-3);
+    border-radius: var(--radius-sm);
+    color: var(--text-2);
+    transition:
+      background-color var(--dur-fast) linear,
+      color var(--dur-fast) linear;
+  }
+  .sideLink:hover {
+    background: var(--bg-hover);
+    color: var(--text);
+  }
+  .sideLink[aria-current="page"] {
+    background: var(--bg-press);
+    color: var(--text);
+  }
+  .sideLink[aria-current="page"] svg {
+    color: var(--accent);
+  }
+
+  .sideFoot {
+    margin-top: auto;
+    padding: 0 var(--s-3);
+    display: grid;
+    gap: 2px;
+  }
+  .sideUser {
+    font-size: var(--fs-sm);
+    color: var(--text-2);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .sideStatus {
+    font-size: var(--fs-xs);
+    color: var(--text-3);
+  }
+
+  .main {
+    margin-left: var(--sidebar-w);
+    padding: var(--s-8) var(--s-6) var(--s-8);
+  }
+}
+
+/* ----------------------------- Page header ----------------------------- */
+.pageHead {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: var(--s-4);
+  margin-bottom: var(--s-6);
+}
+
+.pageHeadText {
+  display: grid;
+  gap: var(--s-1);
+  min-width: 0;
+  /* Wraps the action under the title on narrow screens instead of squeezing the lead */
+  flex: 1 1 15rem;
+}
+
+.pageTitle {
+  font-family: var(--font-display);
+  font-weight: 400;
+  font-size: clamp(2.1rem, 7vw, 2.75rem);
+  line-height: 1.05;
+  letter-spacing: -0.015em;
+  overflow-wrap: anywhere;
+}
+
+.pageLead {
+  color: var(--text-3);
+  max-width: 44ch;
+}
+
+.pageActions {
+  flex: none;
+}
+
+/* ------------------------------ Skeleton ------------------------------ */
+.skelLine {
+  height: 14px;
+  border-radius: 7px;
+  background: var(--bg-hover);
+  animation: pulse 1.4s ease-in-out infinite;
+}
+
+@keyframes pulse {
+  50% {
+    opacity: 0.45;
+  }
+}

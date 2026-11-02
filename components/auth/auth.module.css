@@ -1,0 +1,56 @@
+.wrap {
+  width: min(380px, 100%);
+}
+
+.brand {
+  font-family: var(--font-display);
+  font-size: 1.5rem;
+  color: var(--text-2);
+  margin-bottom: var(--s-7);
+}
+
+.title {
+  font-family: var(--font-display);
+  font-weight: 400;
+  font-size: clamp(2.2rem, 8vw, 2.9rem);
+  line-height: 1.05;
+  letter-spacing: -0.015em;
+}
+
+.lead {
+  margin-top: var(--s-2);
+  color: var(--text-3);
+}
+
+.form {
+  display: grid;
+  gap: var(--s-4);
+  margin-top: var(--s-6);
+}
+
+.hint {
+  font-size: var(--fs-sm);
+  color: var(--text-3);
+}
+
+.error {
+  min-height: 1.5em;
+  font-size: var(--fs-sm);
+  color: var(--danger);
+}
+
+.switch {
+  margin-top: var(--s-5);
+  color: var(--text-3);
+  font-size: var(--fs-sm);
+}
+
+.switchLink {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  color: var(--accent);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  text-decoration-thickness: 1px;
+}

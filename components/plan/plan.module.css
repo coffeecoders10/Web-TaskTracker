@@ -1,0 +1,230 @@
+.crumbs {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--s-1);
+  margin-bottom: var(--s-3);
+  font-size: var(--fs-sm);
+  color: var(--text-3);
+}
+.crumbs a {
+  display: inline-flex;
+  align-items: center;
+  min-height: 32px;
+  color: var(--text-2);
+}
+.crumbs a:hover {
+  color: var(--text);
+}
+.crumb {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--s-1);
+}
+
+.addTop {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--s-2);
+  min-height: 44px;
+  padding: 0 var(--s-4);
+  border-radius: var(--radius);
+  background: var(--accent-soft);
+  color: var(--accent);
+  font-weight: 500;
+  white-space: nowrap;
+  transition: background-color var(--dur-fast) linear;
+}
+.addTop:hover {
+  background: oklch(0.82 0.09 165 / 0.22);
+}
+
+.branchProgress {
+  display: grid;
+  gap: var(--s-2);
+  max-width: 320px;
+  margin-bottom: var(--s-5);
+  font-size: var(--fs-sm);
+  color: var(--text-3);
+}
+
+/* ------------------------------- The tree ------------------------------- */
+.tree {
+  margin-top: var(--s-2);
+}
+
+.node {
+  position: relative;
+}
+
+.nodeRow {
+  display: flex;
+  align-items: center;
+  gap: var(--s-1);
+  min-height: 48px;
+  border-radius: var(--radius-sm);
+}
+
+.nodeRow:hover {
+  background: var(--bg-raised);
+}
+
+/* The primary hit area: expands parents, edits leaves. */
+.main {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: var(--s-1);
+  min-height: 48px;
+  padding: var(--s-2) var(--s-1);
+  border-radius: var(--radius-sm);
+}
+
+.chevron {
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: 24px;
+  color: var(--text-3);
+  transition: transform var(--dur) var(--ease-out);
+}
+.chevron[data-open] {
+  transform: rotate(90deg);
+}
+.chevron[data-empty] {
+  visibility: hidden;
+}
+
+.name {
+  font-size: var(--fs-md);
+  line-height: 1.35;
+  overflow-wrap: anywhere;
+}
+.nodeRow[data-top] .name {
+  font-weight: 600;
+}
+.name[data-done] {
+  color: var(--text-3);
+  text-decoration: line-through;
+  text-decoration-color: var(--line-strong);
+}
+
+.stat {
+  flex: none;
+  padding: 0 var(--s-2);
+  font-size: var(--fs-sm);
+  color: var(--text-3);
+}
+
+.nodeProgress {
+  padding: 0 var(--s-1) var(--s-2) 28px;
+  max-width: 280px;
+}
+
+/* Nesting: one hairline guide per level, indent that stops growing when deep. */
+.children {
+  margin-left: 15px;
+  padding-left: var(--s-3);
+  border-left: 1px solid var(--line);
+}
+.children[data-deep] {
+  padding-left: var(--s-1);
+}
+
+/* "+" is a desktop shortcut; on touch it lives in the row menu. */
+.quickAdd {
+  display: none;
+}
+@media (hover: hover) and (pointer: fine) {
+  .quickAdd {
+    display: inline-grid;
+    opacity: 0;
+  }
+  .nodeRow:hover .quickAdd,
+  .nodeRow:focus-within .quickAdd {
+    opacity: 1;
+  }
+}
+
+/* Inline add */
+.addRow {
+  display: flex;
+  gap: var(--s-2);
+  align-items: center;
+  padding: var(--s-2) 0 var(--s-2) var(--s-1);
+}
+.addInput {
+  flex: 1;
+  min-width: 0;
+  min-height: 44px;
+  padding: 0 var(--s-3);
+  border-radius: var(--radius);
+  border: 1px solid var(--line-strong);
+  background: var(--bg-raised);
+  font-size: 1rem;
+}
+.addInput:focus-visible {
+  outline: none;
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px var(--accent-soft);
+}
+.addSubmit {
+  min-height: 44px;
+  padding: 0 var(--s-4);
+  border-radius: var(--radius);
+  background: var(--accent);
+  color: var(--accent-ink);
+  font-weight: 600;
+}
+.addSubmit:disabled {
+  background: var(--bg-hover);
+  color: var(--text-3);
+  cursor: default;
+}
+
+/* Dialog forms */
+.form {
+  display: grid;
+  gap: var(--s-4);
+}
+
+.moveList {
+  display: grid;
+  max-height: min(50dvh, 360px);
+  overflow: auto;
+  margin: 0 calc(var(--s-2) * -1);
+  padding: 0 var(--s-2);
+}
+.moveOption {
+  display: flex;
+  align-items: center;
+  gap: var(--s-3);
+  width: 100%;
+  min-height: 48px;
+  padding: 0 var(--s-3);
+  border-radius: var(--radius-sm);
+}
+.moveOption:hover:not(:disabled) {
+  background: var(--bg-hover);
+}
+.moveOption:disabled {
+  color: var(--text-3);
+  cursor: default;
+}
+.moveOption svg {
+  flex: none;
+  color: var(--text-3);
+}
+.moveOption span {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.moveOption em {
+  font-style: normal;
+  font-size: var(--fs-xs);
+  color: var(--text-3);
+}

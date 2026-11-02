@@ -1,0 +1,123 @@
+/* Rows shared by Home, Tasks and Daily lists */
+.list {
+  display: block;
+}
+
+.item {
+  display: grid;
+  grid-template-rows: 1fr;
+}
+
+.itemInner {
+  min-height: 0;
+  overflow: hidden;
+}
+
+.item[data-leaving] {
+  animation: leave 320ms var(--ease-out) 650ms forwards;
+}
+
+@keyframes leave {
+  to {
+    grid-template-rows: 0fr;
+    opacity: 0;
+  }
+}
+
+.row {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--s-2);
+  padding: var(--s-3) 0;
+  min-height: 56px;
+  border-bottom: 1px solid var(--line);
+}
+
+.text {
+  display: grid;
+  gap: 2px;
+  min-width: 0;
+  padding-top: 1px;
+  flex: 1;
+}
+
+.title {
+  font-size: var(--fs-md);
+  line-height: 1.35;
+  overflow-wrap: anywhere;
+  transition: color var(--dur) var(--ease-out);
+}
+
+.title[data-done] {
+  color: var(--text-3);
+  text-decoration: line-through;
+  text-decoration-color: var(--line-strong);
+}
+
+.trail {
+  font-size: var(--fs-sm);
+  color: var(--text-3);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* Groups on the Tasks page */
+.group + .group {
+  margin-top: var(--s-6);
+}
+
+.groupHead {
+  display: grid;
+  gap: var(--s-2);
+  padding-bottom: var(--s-2);
+}
+
+.groupTitleRow {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--s-4);
+}
+
+.groupTitle {
+  font-size: var(--fs-sm);
+  font-weight: 600;
+  color: var(--text-2);
+  letter-spacing: 0.01em;
+}
+
+.count {
+  font-size: var(--fs-sm);
+  color: var(--text-3);
+  white-space: nowrap;
+}
+
+/* Segmented control */
+.tabs {
+  display: inline-flex;
+  padding: 3px;
+  border-radius: var(--radius);
+  background: var(--bg-raised);
+  border: 1px solid var(--line);
+}
+
+.tab {
+  min-height: 38px;
+  padding: 0 var(--s-4);
+  border-radius: calc(var(--radius) - 3px);
+  color: var(--text-2);
+  font-weight: 500;
+  transition:
+    background-color var(--dur-fast) linear,
+    color var(--dur-fast) linear;
+}
+
+.tab:hover {
+  color: var(--text);
+}
+
+.tab[aria-selected="true"] {
+  background: var(--bg-press);
+  color: var(--text);
+}
