@@ -14,7 +14,6 @@ export function AuthForm({ mode }: { mode: "login" | "signup" }) {
 
   return (
     <div className={styles.wrap}>
-      <p className={styles.brand}>Onward</p>
       <h1 className={styles.title}>{isLogin ? "Welcome back." : "Make a quiet start."}</h1>
       <p className={styles.lead}>
         {isLogin
