@@ -163,6 +163,11 @@
     line-height: 1.2;
   }
 
+  .credit {
+    margin-top: auto;
+    padding: 0 var(--s-3);
+  }
+
   .sideNav {
     display: grid;
     gap: 2px;

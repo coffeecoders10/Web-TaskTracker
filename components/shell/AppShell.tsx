@@ -6,6 +6,7 @@ import type { ReactNode } from "react";
 import { logout } from "@/actions/auth";
 import { useDoc } from "@/components/store/AppProvider";
 import { BrandArt } from "@/components/ui/BrandArt";
+import { BuiltBy } from "@/components/ui/BuiltBy";
 import { Icon, type IconName } from "@/components/ui/Icon";
 import styles from "./shell.module.css";
 
@@ -55,6 +56,7 @@ export function AppShell({ children }: { children: ReactNode }) {
             </Link>
           ))}
         </nav>
+        <BuiltBy className={styles.credit} />
       </aside>
 
       <header className={styles.topbar}>

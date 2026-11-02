@@ -113,6 +113,17 @@
   }
 }
 
+.panelInner {
+  width: min(380px, 100%);
+  display: grid;
+  justify-items: center;
+  gap: var(--s-6);
+}
+
+.credit {
+  justify-content: center;
+}
+
 .wrap {
   width: min(380px, 100%);
 }
