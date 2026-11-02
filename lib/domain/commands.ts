@@ -24,6 +24,7 @@ export type Command =
   | { type: "activity.rename"; id: string; title: string }
   | { type: "activity.delete"; id: string }
   | { type: "activity.move"; id: string; index: number }
+  | { type: "activity.setDays"; id: string; days: number[] }
   | { type: "activity.setDone"; id: string; date: string; done: boolean }
   | { type: "prefs.set"; dailyEnabled: boolean };
 
@@ -57,6 +58,16 @@ function checkNewId(id: unknown, existing: readonly { id: string }[]): string {
   if (typeof id !== "string" || !ID.test(id)) throw new DomainError("Invalid id.");
   if (existing.some((e) => e.id === id)) throw new DomainError("Id already exists.");
   return id;
+}
+
+/** Valid, sorted, unique weekdays; `undefined` when that means "every day". */
+function cleanDays(raw: unknown): number[] | undefined {
+  if (!Array.isArray(raw)) throw new DomainError("Pick at least one day.");
+  const days = [...new Set(raw)]
+    .filter((d): d is number => Number.isInteger(d) && d >= 0 && d <= 6)
+    .sort((a, b) => a - b);
+  if (days.length === 0) throw new DomainError("Pick at least one day.");
+  return days.length === 7 ? undefined : days;
 }
 
 function clampIndex(index: unknown, length: number): number {
@@ -240,6 +251,23 @@ export function applyCommand(doc: UserDoc, cmd: Command, now: number): UserDoc {
       return { ...doc, activities: renumber(doc.activities, seq) };
     }
 
+    case "activity.setDays": {
+      if (!doc.activities.some((a) => a.id === cmd.id)) {
+        throw new DomainError("Activity not found.");
+      }
+      const days = cleanDays(cmd.days);
+      return {
+        ...doc,
+        activities: doc.activities.map((a) => {
+          if (a.id !== cmd.id) return a;
+          const next = { ...a };
+          if (days) next.days = days;
+          else delete next.days;
+          return next;
+        }),
+      };
+    }
+
     case "activity.setDone": {
       if (!doc.activities.some((a) => a.id === cmd.id)) {
         throw new DomainError("Activity not found.");
@@ -309,11 +337,18 @@ export function normalizeDoc(raw: unknown): UserDoc {
       const r = a as Record<string, unknown>;
       if (typeof r.id !== "string" || typeof r.title !== "string" || seenActs.has(r.id)) continue;
       seenActs.add(r.id);
-      activities.push({
+      const act: Activity = {
         id: r.id,
         title: r.title,
         order: typeof r.order === "number" ? r.order : activities.length,
-      });
+      };
+      if (Array.isArray(r.days)) {
+        const days = [...new Set(r.days)]
+          .filter((d): d is number => Number.isInteger(d) && d >= 0 && d <= 6)
+          .sort((a, b) => a - b);
+        if (days.length > 0 && days.length < 7) act.days = days;
+      }
+      activities.push(act);
     }
   }
 

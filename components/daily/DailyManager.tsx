@@ -1,7 +1,7 @@
 "use client";
 
 import * as Menu from "@radix-ui/react-dropdown-menu";
-import { useRef, useState } from "react";
+import { useRef, useState, type ReactNode } from "react";
 import { PageHeader } from "@/components/shell/PageHeader";
 import { useActions, useDoc } from "@/components/store/AppProvider";
 import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
@@ -12,37 +12,34 @@ import { LIMITS, type Activity } from "@/lib/domain/types";
 import ui from "@/components/ui/ui.module.css";
 import styles from "./daily.module.css";
 
-export function DailyManager() {
+const ALL_DAYS = [0, 1, 2, 3, 4, 5, 6];
+const WEEK = [
+  { value: 1, short: "M", label: "Monday" },
+  { value: 2, short: "T", label: "Tuesday" },
+  { value: 3, short: "W", label: "Wednesday" },
+  { value: 4, short: "T", label: "Thursday" },
+  { value: 5, short: "F", label: "Friday" },
+  { value: 6, short: "S", label: "Saturday" },
+  { value: 0, short: "S", label: "Sunday" },
+];
+
+function describeDays(days: readonly number[] | undefined): string {
+  if (!days) return "Every day";
+  const names = WEEK.filter((d) => days.includes(d.value)).map((d) => d.label.slice(0, 3));
+  return names.join(" · ");
+}
+
+export function DailyManager({ tabs }: { tabs?: ReactNode }) {
   const { doc } = useDoc();
   const { dispatch } = useActions();
   const [draft, setDraft] = useState("");
   const [renamingId, setRenamingId] = useState<string | null>(null);
   const [deleteId, setDeleteId] = useState<string | null>(null);
+  const [daysId, setDaysId] = useState<string | null>(null);
   const addRef = useRef<HTMLInputElement>(null);
 
   const activities = [...doc.activities].sort((a, b) => a.order - b.order);
   const deleting = activities.find((a) => a.id === deleteId);
-
-  if (!doc.prefs.dailyEnabled) {
-    return (
-      <>
-        <PageHeader title="Daily" />
-        <div className={ui.empty}>
-          <p className={ui.emptyTitle}>The daily tracker is off.</p>
-          <p className={ui.emptyText}>
-            Your activities and history are kept. Turn it back on to see them on Today.
-          </p>
-          <button
-            type="button"
-            className={`${ui.btn} ${ui.btnPrimary}`}
-            onClick={() => dispatch({ type: "prefs.set", dailyEnabled: true })}
-          >
-            Turn on daily tracker
-          </button>
-        </div>
-      </>
-    );
-  }
 
   const add = () => {
     const title = draft.trim();
@@ -54,9 +51,11 @@ export function DailyManager() {
   return (
     <>
       <PageHeader
-        title="Daily"
-        lead="Small things you want to do every day. Each day starts fresh; past days are kept."
+        title="Plan"
+        lead="Small things you want to do on repeat. Each day starts fresh; past days are kept."
       />
+
+      {tabs}
 
       <form
         className={styles.add}
@@ -102,7 +101,36 @@ export function DailyManager() {
                 />
               ) : (
                 <>
-                  <span className={styles.name}>{a.title}</span>
+                  <div className={styles.name}>
+                    <span>{a.title}</span>
+                    <span className={styles.days}>{describeDays(a.days)}</span>
+                    {daysId === a.id ? (
+                      <div className={styles.dayPicker} role="group" aria-label={`Repeat days for ${a.title}`}>
+                        {WEEK.map((d) => {
+                          const on = !a.days || a.days.includes(d.value);
+                          return (
+                            <button
+                              key={d.value}
+                              type="button"
+                              className={styles.dayChip}
+                              aria-pressed={on}
+                              aria-label={d.label}
+                              onClick={() => {
+                                const current = a.days ?? ALL_DAYS;
+                                const next = on
+                                  ? current.filter((x) => x !== d.value)
+                                  : [...current, d.value];
+                                if (next.length === 0) return; // keep at least one day
+                                dispatch({ type: "activity.setDays", id: a.id, days: next });
+                              }}
+                            >
+                              {d.short}
+                            </button>
+                          );
+                        })}
+                      </div>
+                    ) : null}
+                  </div>
                   <Menu.Root>
                     <Menu.Trigger className={ui.iconBtn} aria-label={`Options for ${a.title}`}>
                       <Icon name="more" />
@@ -111,6 +139,12 @@ export function DailyManager() {
                       <Menu.Content className={ui.menu} align="end" sideOffset={4} collisionPadding={12}>
                         <Menu.Item className={ui.menuItem} onSelect={() => setRenamingId(a.id)}>
                           <Icon name="edit" size={18} /> Rename
+                        </Menu.Item>
+                        <Menu.Item
+                          className={ui.menuItem}
+                          onSelect={() => setDaysId(daysId === a.id ? null : a.id)}
+                        >
+                          <Icon name="repeat" size={18} /> {daysId === a.id ? "Done with days" : "Repeat on days"}
                         </Menu.Item>
                         <Menu.Item
                           className={ui.menuItem}

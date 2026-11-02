@@ -46,6 +46,12 @@ export function shiftDateKey(key: string, days: number): string {
   return shifted.toISOString().slice(0, 10);
 }
 
+/** Weekday of a date key: 0 = Sunday .. 6 = Saturday. */
+export function weekdayOf(key: string): number {
+  const [y, m, d] = key.split("-").map(Number);
+  return new Date(Date.UTC(y, m - 1, d)).getUTCDay();
+}
+
 /** "Monday, 2 November" for a date key. */
 export function formatLongDate(key: string): { weekday: string; rest: string } {
   const [y, m, d] = key.split("-").map(Number);

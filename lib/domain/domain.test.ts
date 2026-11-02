@@ -209,6 +209,14 @@ describe("daily activities", () => {
     assert.equal(d.log[today], undefined);
   });
 
+  it("limits an activity to chosen weekdays, and 7 days means every day", () => {
+    let d = run(base(), { type: "activity.setDays", id: act, days: [5, 1, 1, 9] });
+    assert.deepEqual(d.activities[0].days, [1, 5]);
+    d = run(d, { type: "activity.setDays", id: act, days: [0, 1, 2, 3, 4, 5, 6] });
+    assert.equal(d.activities[0].days, undefined);
+    assert.throws(() => run(d, { type: "activity.setDays", id: act, days: [] }), DomainError);
+  });
+
   it("keeps history when the tracker is disabled and re-enabled", () => {
     let d = run(base(), { type: "activity.setDone", id: act, date: today, done: true });
     d = run(d, { type: "prefs.set", dailyEnabled: false });

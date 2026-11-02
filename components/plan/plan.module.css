@@ -228,3 +228,34 @@
   font-size: var(--fs-xs);
   color: var(--text-3);
 }
+
+/* Tasks / Daily switcher */
+.tabs {
+  display: inline-flex;
+  padding: 2px;
+  margin-bottom: var(--s-5);
+  border-radius: var(--radius-sm);
+  background: var(--bg-raised);
+  border: 1px solid var(--line);
+}
+
+.tab {
+  display: inline-flex;
+  align-items: center;
+  min-height: 30px;
+  padding: 0 var(--s-3);
+  font-size: var(--fs-sm);
+  border-radius: calc(var(--radius-sm) - 2px);
+  color: var(--text-2);
+  font-weight: 500;
+  transition:
+    background-color var(--dur-fast) linear,
+    color var(--dur-fast) linear;
+}
+.tab:hover {
+  color: var(--text);
+}
+.tab[aria-current="page"] {
+  background: var(--bg-press);
+  color: var(--text);
+}

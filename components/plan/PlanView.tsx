@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useCallback, useMemo, useState } from "react";
+import { useCallback, useMemo, useState, type ReactNode } from "react";
 import { PageHeader } from "@/components/shell/PageHeader";
 import { useActions, useDoc } from "@/components/store/AppProvider";
 import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
@@ -17,7 +17,7 @@ import styles from "./plan.module.css";
 
 const DEFAULT_OPEN_DEPTH = 2;
 
-export function PlanView({ rootId }: { rootId: string | null }) {
+export function PlanView({ rootId, tabs }: { rootId: string | null; tabs?: ReactNode }) {
   const { index } = useDoc();
   const { dispatch } = useActions();
 
@@ -144,6 +144,8 @@ export function PlanView({ rootId }: { rootId: string | null }) {
           </button>
         }
       />
+
+      {tabs}
 
       {root && stats && stats.total > 0 ? (
         <div className={styles.branchProgress}>

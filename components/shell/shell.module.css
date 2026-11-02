@@ -23,8 +23,82 @@
   display: none;
 }
 
+/* The login pattern, dimmed to a watermark behind the page. */
+.backdrop {
+  position: fixed;
+  z-index: 0;
+  right: -4vw;
+  bottom: calc(var(--tabbar-h) + var(--safe-bottom));
+  width: min(78vw, 360px);
+  height: auto;
+  aspect-ratio: 1;
+  opacity: 0.32;
+  pointer-events: none;
+}
+
+.topbar {
+  position: sticky;
+  top: 0;
+  z-index: 40;
+  display: flex;
+  align-items: center;
+  gap: var(--s-1);
+  height: var(--topbar-h);
+  padding: 0 var(--s-3) 0 20px;
+  background: oklch(0.175 0.014 250 / 0.88);
+  backdrop-filter: blur(12px);
+  border-bottom: 1px solid var(--line);
+}
+
+.topBrand {
+  font-family: var(--font-display);
+  font-size: 1.5rem;
+  line-height: 1;
+  letter-spacing: -0.01em;
+}
+
+.topStatus {
+  flex: 1;
+  min-width: 0;
+  padding-left: var(--s-3);
+  font-size: var(--fs-xs);
+  color: var(--text-3);
+}
+
+.topUser {
+  min-width: 0;
+  max-width: 9rem;
+  margin-right: var(--s-1);
+  font-size: var(--fs-sm);
+  color: var(--text-2);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.topBtn {
+  display: grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  border-radius: var(--radius-sm);
+  color: var(--text-2);
+  transition:
+    background-color var(--dur-fast) linear,
+    color var(--dur-fast) linear;
+}
+.topBtn:hover {
+  background: var(--bg-hover);
+  color: var(--text);
+}
+.topBtn[aria-current="page"] {
+  color: var(--accent);
+}
+
 .main {
-  padding: var(--s-6) 20px calc(var(--tabbar-h) + var(--safe-bottom) + var(--s-7));
+  position: relative;
+  z-index: 1;
+  padding: var(--s-5) 20px calc(var(--tabbar-h) + var(--safe-bottom) + var(--s-4));
 }
 
 .content {
@@ -118,27 +192,31 @@
     color: var(--accent);
   }
 
-  .sideFoot {
-    margin-top: auto;
-    padding: 0 var(--s-3);
-    display: grid;
-    gap: 2px;
+  /* The sidebar already carries the wordmark. */
+  .topBrand {
+    display: none;
   }
-  .sideUser {
-    font-size: var(--fs-sm);
-    color: var(--text-2);
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
+  .topStatus {
+    padding-left: 0;
   }
-  .sideStatus {
-    font-size: var(--fs-xs);
-    color: var(--text-3);
+  .topbar {
+    margin-left: var(--sidebar-w);
+    padding-left: var(--s-6);
+    padding-right: var(--s-5);
+  }
+  .topUser {
+    max-width: 16rem;
+  }
+
+  .backdrop {
+    right: 0;
+    bottom: 0;
+    width: min(46vw, 560px);
   }
 
   .main {
     margin-left: var(--sidebar-w);
-    padding: var(--s-8) var(--s-6) var(--s-8);
+    padding: var(--s-6) var(--s-6) var(--s-6);
   }
 }
 

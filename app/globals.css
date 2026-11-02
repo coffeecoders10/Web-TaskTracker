@@ -55,6 +55,7 @@
   --dur: 200ms;
 
   --tabbar-h: 64px;
+  --topbar-h: 56px;
   --sidebar-w: 248px;
   --safe-bottom: env(safe-area-inset-bottom, 0px);
 }

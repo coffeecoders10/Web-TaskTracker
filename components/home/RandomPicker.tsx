@@ -33,7 +33,7 @@ export function RandomPicker({
 
 function PickerBody({ close }: { close: () => void }) {
   const { index } = useDoc();
-  const { setFocus } = useActions();
+  const { addToday } = useActions();
   const complete = useCompleteTask();
 
   const candidates = incompleteLeaves(index);
@@ -107,11 +107,11 @@ function PickerBody({ close }: { close: () => void }) {
           type="button"
           className={ui.btn}
           onClick={() => {
-            setFocus(live.id);
+            addToday(live.id);
             close();
           }}
         >
-          Work on this
+          Add to today
         </button>
         <button type="button" className={ui.btn} onClick={reroll} disabled={onlyOne}>
           <Icon name="shuffle" size={18} /> Another

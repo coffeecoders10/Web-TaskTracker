@@ -23,6 +23,8 @@ export type Activity = {
   id: string;
   title: string;
   order: number;
+  /** Weekdays it repeats on (0 = Sunday .. 6 = Saturday). Omitted means every day. */
+  days?: number[];
 };
 
 export type Prefs = {

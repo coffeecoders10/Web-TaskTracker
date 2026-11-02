@@ -24,14 +24,15 @@ type DocValue = Snapshot & {
   /** The viewer's local calendar day, e.g. 2026-11-02. */
   today: string;
   user: User;
-  /** Task the user chose to work on from the picker, if any. */
-  focusId: string | null;
+  /** Tasks the user picked for today, in the order they were picked. */
+  todayIds: readonly string[];
 };
 
 type Actions = {
   dispatch: (cmd: Command) => boolean;
   openPicker: () => void;
-  setFocus: (id: string | null) => void;
+  addToday: (id: string) => void;
+  removeToday: (id: string) => void;
 };
 
 const DocContext = createContext<DocValue | null>(null);
@@ -113,23 +114,33 @@ export function AppProvider({
   }, [store]);
 
   const [pickerOpen, setPickerOpen] = useState(false);
-  const [focusId, setFocusId] = useState<string | null>(null);
+  const [pickedIds, setPickedIds] = useState<readonly string[]>([]);
 
-  // Drop the focus once that task is gone or finished.
-  const focusTask = focusId ? snapshot.index.byId.get(focusId) : undefined;
-  const activeFocus = focusTask && !focusTask.done ? focusId : null;
+  // Finished picks stay (crossed out) until the page reloads; deleted tasks drop out.
+  const todayIds = useMemo(
+    () => pickedIds.filter((id) => snapshot.index.byId.has(id)),
+    [pickedIds, snapshot.index],
+  );
 
   const dispatch = useCallback((cmd: Command) => store.dispatch(cmd), [store]);
   const openPicker = useCallback(() => setPickerOpen(true), []);
+  const addToday = useCallback(
+    (id: string) => setPickedIds((prev) => (prev.includes(id) ? prev : [...prev, id])),
+    [],
+  );
+  const removeToday = useCallback(
+    (id: string) => setPickedIds((prev) => prev.filter((x) => x !== id)),
+    [],
+  );
 
   const actions = useMemo<Actions>(
-    () => ({ dispatch, openPicker, setFocus: setFocusId }),
-    [dispatch, openPicker],
+    () => ({ dispatch, openPicker, addToday, removeToday }),
+    [dispatch, openPicker, addToday, removeToday],
   );
 
   const value = useMemo<DocValue>(
-    () => ({ ...snapshot, today, user, focusId: activeFocus }),
-    [snapshot, today, user, activeFocus],
+    () => ({ ...snapshot, today, user, todayIds }),
+    [snapshot, today, user, todayIds],
   );
 
   return (

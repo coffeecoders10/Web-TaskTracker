@@ -1,8 +1,6 @@
-import type { Metadata } from "next";
-import { DailyManager } from "@/components/daily/DailyManager";
+import { redirect } from "next/navigation";
 
-export const metadata: Metadata = { title: "Daily" };
-
+// Daily now lives under Plan; keep old links working.
 export default function DailyPage() {
-  return <DailyManager />;
+  redirect("/plan?tab=daily");
 }

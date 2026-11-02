@@ -6,7 +6,7 @@ import { useActions, useDoc } from "@/components/store/AppProvider";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { Icon } from "@/components/ui/Icon";
 import { Progress } from "@/components/ui/Progress";
-import { ancestorsOf, orderedLeaves, type TaskIndex } from "@/lib/domain/tree";
+import { ancestorsOf, isComplete, orderedLeaves, type TaskIndex } from "@/lib/domain/tree";
 import type { Task } from "@/lib/domain/types";
 import ui from "@/components/ui/ui.module.css";
 import { TaskRow } from "./TaskRow";
@@ -60,18 +60,39 @@ export function TasksView() {
   const { lingering, hold } = useLingering();
   const [view, setView] = useState<View>("todo");
 
+  const [collapsed, setCollapsed] = useState<ReadonlySet<string>>(() => new Set());
+
   const leaves = useMemo(() => orderedLeaves(index), [index]);
   const openCount = leaves.filter((t) => !t.done).length;
   const doneCount = leaves.length - openCount;
 
-  const visible = useMemo(
-    () =>
-      leaves.filter((t) =>
-        view === "todo" ? !t.done || lingering.has(t.id) : t.done,
-      ),
-    [leaves, view, lingering],
-  );
+  // "To do" keeps finished steps (crossed out) until their whole main task is done;
+  // a just-finished main task lingers briefly so it can still be undone.
+  const visible = useMemo(() => {
+    if (view === "done") return leaves.filter((t) => t.done);
+    const rootOf = (id: string) => ancestorsOf(index, id)[0];
+    const lingeringRoots = new Set<string>();
+    for (const id of lingering) {
+      const root = rootOf(id);
+      if (root) lingeringRoots.add(root.id);
+    }
+    return leaves.filter((t) => {
+      const root = rootOf(t.id);
+      if (!root) return !t.done || lingering.has(t.id);
+      return !isComplete(index, root.id) || lingeringRoots.has(root.id);
+    });
+  }, [index, leaves, view, lingering]);
   const groups = useMemo(() => groupLeaves(index, visible), [index, visible]);
+
+  const allCollapsed = groups.length > 0 && groups.every((g) => collapsed.has(g.key));
+  const toggleGroup = (key: string) =>
+    setCollapsed((prev) => {
+      const next = new Set(prev);
+      if (!next.delete(key)) next.add(key);
+      return next;
+    });
+  const toggleAll = () =>
+    setCollapsed(allCollapsed ? new Set() : new Set(groups.map((g) => g.key)));
 
   const toggle = useCallback(
     (id: string, done: boolean) => {
@@ -92,36 +113,49 @@ export function TasksView() {
           openCount > 0 ? (
             <button type="button" className={ui.btn} onClick={openPicker}>
               <Icon name="shuffle" size={18} />
-              Pick for me
+              Pick a task
             </button>
           ) : null
         }
       />
 
       {leaves.length > 0 ? (
-        <div className={styles.tabs} role="tablist" aria-label="Task status">
-          <button
-            type="button"
-            role="tab"
-            id="tab-todo"
-            aria-selected={view === "todo"}
-            aria-controls="tasks-panel"
-            className={styles.tab}
-            onClick={() => setView("todo")}
-          >
-            To do <span className="nums">{openCount}</span>
-          </button>
-          <button
-            type="button"
-            role="tab"
-            id="tab-done"
-            aria-selected={view === "done"}
-            aria-controls="tasks-panel"
-            className={styles.tab}
-            onClick={() => setView("done")}
-          >
-            Done <span className="nums">{doneCount}</span>
-          </button>
+        <div className={styles.tabsRow}>
+          <div className={styles.tabs} role="tablist" aria-label="Task status">
+            <button
+              type="button"
+              role="tab"
+              id="tab-todo"
+              aria-selected={view === "todo"}
+              aria-controls="tasks-panel"
+              className={styles.tab}
+              onClick={() => setView("todo")}
+            >
+              To do <span className="nums">{openCount}</span>
+            </button>
+            <button
+              type="button"
+              role="tab"
+              id="tab-done"
+              aria-selected={view === "done"}
+              aria-controls="tasks-panel"
+              className={styles.tab}
+              onClick={() => setView("done")}
+            >
+              Done <span className="nums">{doneCount}</span>
+            </button>
+          </div>
+          {groups.length > 1 ? (
+            <button
+              type="button"
+              className={styles.iconBtn}
+              onClick={toggleAll}
+              aria-label={allCollapsed ? "Expand all tasks" : "Collapse all tasks"}
+              title={allCollapsed ? "Expand all" : "Collapse all"}
+            >
+              <Icon name={allCollapsed ? "expand" : "collapse"} size={20} />
+            </button>
+          ) : null}
         </div>
       ) : null}
 
@@ -148,34 +182,52 @@ export function TasksView() {
             <EmptyState title="Nothing finished yet." text="Completed tasks collect here." />
           )
         ) : (
-          groups.map((g) => (
-            <section key={g.key} className={styles.group} aria-label={g.title}>
-              <div className={styles.groupHead}>
-                <div className={styles.groupTitleRow}>
-                  <h2 className={styles.groupTitle}>{g.title}</h2>
-                  {g.key !== STANDALONE ? (
-                    <span className={styles.count}>
-                      <span className="nums">{g.done}</span>/<span className="nums">{g.total}</span>
-                    </span>
-                  ) : null}
+          groups.map((g) => {
+            const isOpen = !collapsed.has(g.key);
+            // Rows slide out only once their whole main task is finished.
+            const leaving = view === "todo" && (g.key === STANDALONE || g.done === g.total);
+            return (
+              <section key={g.key} className={styles.group} aria-label={g.title}>
+                <div className={styles.groupHead}>
+                  <div className={styles.groupTitleRow}>
+                    <h2 className={styles.groupTitle}>
+                      <button
+                        type="button"
+                        className={styles.groupToggle}
+                        aria-expanded={isOpen}
+                        aria-controls={`group-${g.key}`}
+                        onClick={() => toggleGroup(g.key)}
+                      >
+                        <Icon name="chevron" size={16} className={styles.chev} />
+                        {g.title}
+                      </button>
+                    </h2>
+                    {g.key !== STANDALONE ? (
+                      <span className={styles.count}>
+                        <span className="nums">{g.done}</span>/<span className="nums">{g.total}</span>
+                      </span>
+                    ) : null}
+                  </div>
+                  {g.key !== STANDALONE ? <Progress done={g.done} total={g.total} /> : null}
                 </div>
-                {g.key !== STANDALONE ? <Progress done={g.done} total={g.total} /> : null}
-              </div>
-              <ul className={styles.list}>
-                {g.tasks.map(({ task, trail }) => (
-                  <TaskRow
-                    key={task.id}
-                    id={task.id}
-                    title={task.title}
-                    trail={trail}
-                    done={task.done}
-                    leaving={view === "todo"}
-                    onToggle={toggle}
-                  />
-                ))}
-              </ul>
-            </section>
-          ))
+                {isOpen ? (
+                  <ul id={`group-${g.key}`} className={styles.list}>
+                    {g.tasks.map(({ task, trail }) => (
+                      <TaskRow
+                        key={task.id}
+                        id={task.id}
+                        title={task.title}
+                        trail={trail}
+                        done={task.done}
+                        leaving={leaving}
+                        onToggle={toggle}
+                      />
+                    ))}
+                  </ul>
+                ) : null}
+              </section>
+            );
+          })
         )}
       </div>
     </>
