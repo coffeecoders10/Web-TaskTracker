@@ -115,8 +115,32 @@ export function AppProvider({
 
   const [pickerOpen, setPickerOpen] = useState(false);
   const [pickedIds, setPickedIds] = useState<readonly string[]>([]);
+  const [picksLoaded, setPicksLoaded] = useState(false);
 
-  // Finished picks stay (crossed out) until the page reloads; deleted tasks drop out.
+  // Picks persist in this browser and carry over across reloads and days until removed.
+  const picksKey = `today-picks:${user.username}`;
+  useEffect(() => {
+    try {
+      const raw = localStorage.getItem(picksKey);
+      const parsed: unknown = raw ? JSON.parse(raw) : [];
+      if (Array.isArray(parsed)) {
+        setPickedIds(parsed.filter((x): x is string => typeof x === "string"));
+      }
+    } catch {
+      // Ignore unreadable storage; start with an empty list.
+    }
+    setPicksLoaded(true);
+  }, [picksKey]);
+  useEffect(() => {
+    if (!picksLoaded) return;
+    try {
+      localStorage.setItem(picksKey, JSON.stringify(pickedIds));
+    } catch {
+      // Storage may be full or blocked; picks just won't persist.
+    }
+  }, [picksKey, picksLoaded, pickedIds]);
+
+  // Finished picks stay (crossed out) until removed; deleted tasks drop out.
   const todayIds = useMemo(
     () => pickedIds.filter((id) => snapshot.index.byId.has(id)),
     [pickedIds, snapshot.index],
