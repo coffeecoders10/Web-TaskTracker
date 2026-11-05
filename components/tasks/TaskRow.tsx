@@ -15,6 +15,7 @@ export const TaskRow = memo(function TaskRow({
   trail,
   done,
   leaving,
+  locked,
   onToggle,
   onRemove,
 }: {
@@ -23,6 +24,8 @@ export const TaskRow = memo(function TaskRow({
   trail?: string;
   done: boolean;
   leaving?: boolean;
+  /** A grouped parent row: complete because its subtasks are, so it can't be toggled itself. */
+  locked?: boolean;
   onToggle: (id: string, done: boolean) => void;
   /** Adds a trailing remove button (used by the Today panel). */
   onRemove?: (id: string) => void;
@@ -33,8 +36,15 @@ export const TaskRow = memo(function TaskRow({
         <div className={styles.row}>
           <Check
             checked={done}
+            disabled={locked}
             onChange={(next) => onToggle(id, next)}
-            label={done ? `Mark "${title}" as not done` : `Mark "${title}" as done`}
+            label={
+              locked
+                ? `"${title}" is done because all its subtasks are`
+                : done
+                  ? `Mark "${title}" as not done`
+                  : `Mark "${title}" as done`
+            }
           />
           <div className={styles.text}>
             <span className={styles.title} data-done={done || undefined}>

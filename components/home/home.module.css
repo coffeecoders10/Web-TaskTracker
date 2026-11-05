@@ -131,6 +131,10 @@
   color: var(--accent);
 }
 
+.reroll[aria-pressed="true"] {
+  color: var(--accent);
+}
+
 .hint {
   color: var(--text-3);
   padding: var(--s-3) 0;

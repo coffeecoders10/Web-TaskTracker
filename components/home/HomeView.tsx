@@ -11,7 +11,7 @@ import { Icon } from "@/components/ui/Icon";
 import { Progress } from "@/components/ui/Progress";
 import { formatLongDate, weekdayOf } from "@/lib/domain/dates";
 import { pickStable } from "@/lib/domain/random";
-import { ancestorsOf, availableLeaves } from "@/lib/domain/tree";
+import { ancestorsOf, availableLeaves, isComplete } from "@/lib/domain/tree";
 import ui from "@/components/ui/ui.module.css";
 import rows from "@/components/tasks/tasks.module.css";
 import styles from "./home.module.css";
@@ -33,6 +33,7 @@ export function HomeView() {
   const complete = useCompleteTask();
   const [shuffles, setShuffles] = useState(0);
   const [seen, setSeen] = useState<readonly string[]>([]);
+  const [hideDone, setHideDone] = useState(false);
   const seed = useSyncExternalStore(noopSubscribe, getClientSeed, getServerSeed);
 
   const { weekday, rest } = formatLongDate(today);
@@ -65,6 +66,41 @@ export function HomeView() {
   const todayDoneCount =
     todayTasks.filter((t) => t.done).length +
     (showDaily ? dueToday.filter((a) => doneToday.has(a.id)).length : 0);
+
+  // Picked tasks whose whole parent (and so on up) is finished collapse into one done row
+  // for that parent, so a fully completed group doesn't crowd the list.
+  const todayRows: { id: string; title: string; done: boolean; condensed: boolean; members: string[] }[] = [];
+  const rowById = new Map<string, (typeof todayRows)[number]>();
+  for (const t of todayTasks) {
+    let top = t;
+    for (;;) {
+      const parent = top.parentId !== null ? index.byId.get(top.parentId) : undefined;
+      if (!parent || !isComplete(index, parent.id)) break;
+      top = parent;
+    }
+    const existing = rowById.get(top.id);
+    if (existing) {
+      existing.members.push(t.id);
+      continue;
+    }
+    const row = {
+      id: top.id,
+      title: top.title,
+      done: top.id === t.id ? t.done : true,
+      condensed: top.id !== t.id,
+      members: [t.id],
+    };
+    rowById.set(top.id, row);
+    todayRows.push(row);
+  }
+  const removeRow = (id: string) => {
+    for (const m of rowById.get(id)?.members ?? [id]) removeToday(m);
+  };
+
+  const anyDone = todayDoneCount > 0;
+  const shownTasks = hideDone ? todayRows.filter((r) => !r.done) : todayRows;
+  const shownDaily = hideDone ? dueToday.filter((a) => !doneToday.has(a.id)) : dueToday;
+  const allHidden = hideDone && shownTasks.length === 0 && shownDaily.length === 0;
 
   const toggleTask = useCallback(
     (id: string, done: boolean) => {
@@ -111,18 +147,32 @@ export function HomeView() {
             <h2 id="today-h" className={styles.sectionTitle}>
               Today
             </h2>
+            {anyDone || hideDone ? (
+              <button
+                type="button"
+                className={styles.reroll}
+                aria-pressed={hideDone}
+                onClick={() => setHideDone((v) => !v)}
+                aria-label={hideDone ? "Show completed" : "Hide completed"}
+                title={hideDone ? "Show completed" : "Hide completed"}
+              >
+                <Icon name={hideDone ? "eyeOff" : "eye"} size={16} />
+              </button>
+            ) : null}
           </div>
-          {todayTasks.length > 0 ? (
+          {allHidden ? <p className={styles.hint}>All done for today. Completed items are hidden.</p> : null}
+          {shownTasks.length > 0 ? (
             <ul className={rows.list}>
-              {todayTasks.map((t) => (
+              {shownTasks.map((t) => (
                 <TaskRow
                   key={t.id}
                   id={t.id}
                   title={t.title}
                   trail={trailOf(t.id)}
                   done={t.done}
+                  locked={t.condensed}
                   onToggle={toggleTask}
-                  onRemove={removeToday}
+                  onRemove={removeRow}
                 />
               ))}
             </ul>
@@ -130,10 +180,12 @@ export function HomeView() {
 
           {showDaily && activities.length > 0 ? (
             <>
-              {todayTasks.length > 0 ? <h3 className={styles.subTitle}>Daily</h3> : null}
-              {dueToday.length > 0 ? (
+              {shownTasks.length > 0 && shownDaily.length > 0 ? (
+                <h3 className={styles.subTitle}>Daily</h3>
+              ) : null}
+              {shownDaily.length > 0 ? (
                 <ul className={rows.list}>
-                  {dueToday.map((a) => {
+                  {shownDaily.map((a) => {
                     const done = doneToday.has(a.id);
                     return (
                       <li key={a.id} className={rows.item}>
@@ -157,7 +209,7 @@ export function HomeView() {
                     );
                   })}
                 </ul>
-              ) : (
+              ) : allHidden || dueToday.length > 0 ? null : (
                 <p className={styles.hint}>Nothing daily is scheduled for today.</p>
               )}
             </>
