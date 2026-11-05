@@ -11,7 +11,7 @@ import { Icon } from "@/components/ui/Icon";
 import { Progress } from "@/components/ui/Progress";
 import { formatLongDate, weekdayOf } from "@/lib/domain/dates";
 import { pickStable } from "@/lib/domain/random";
-import { ancestorsOf, incompleteLeaves } from "@/lib/domain/tree";
+import { ancestorsOf, availableLeaves } from "@/lib/domain/tree";
 import ui from "@/components/ui/ui.module.css";
 import rows from "@/components/tasks/tasks.module.css";
 import styles from "./home.module.css";
@@ -36,7 +36,7 @@ export function HomeView() {
   const seed = useSyncExternalStore(noopSubscribe, getClientSeed, getServerSeed);
 
   const { weekday, rest } = formatLongDate(today);
-  const open = incompleteLeaves(index);
+  const open = availableLeaves(index);
 
   const picked = useMemo(() => new Set(todayIds), [todayIds]);
   const todayTasks = todayIds.flatMap((id) => {

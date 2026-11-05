@@ -13,6 +13,8 @@ export type Task = {
   notes: string;
   /** Meaningful for leaf tasks only. Forced to false when a task gains children. */
   done: boolean;
+  /** When true, this task's subtasks must be completed in order (first to last). */
+  ordered?: boolean;
   /** Sort key among siblings (dense, 0..n-1 after every mutation). */
   order: number;
   createdAt: number;

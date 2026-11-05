@@ -58,6 +58,7 @@ export function PlanView({ rootId, tabs }: { rootId: string | null; tabs?: React
         const at = list.findIndex((s) => s.id === id);
         dispatch({ type: "task.move", id, parentId: t.parentId, index: at + delta });
       },
+      setOrdered: (id, ordered) => dispatch({ type: "task.setOrdered", id, ordered }),
       indent: (id) => {
         const t = index.byId.get(id);
         if (!t) return;

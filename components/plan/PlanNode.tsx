@@ -18,6 +18,7 @@ export type PlanHandlers = {
   move: (id: string) => void;
   remove: (id: string) => void;
   shift: (id: string, delta: -1 | 1) => void;
+  setOrdered: (id: string, ordered: boolean) => void;
   indent: (id: string) => void;
   outdent: (id: string) => void;
 };
@@ -76,6 +77,9 @@ export function PlanNode({
           <span className={styles.chevron} data-open={open || undefined} data-empty={!isParent || undefined}>
             <Icon name="chevron" size={16} />
           </span>
+          {isParent && task.ordered ? (
+            <span className={styles.stat} title="Subtasks must be done in order">1→2</span>
+          ) : null}
           <span className={styles.name} data-done={(!isParent && task.done) || undefined}>
             {task.title}
           </span>
@@ -124,6 +128,15 @@ export function PlanNode({
                   <Link href={`/plan/${taskId}`}>
                     <Icon name="folder" size={18} /> Open branch
                   </Link>
+                </Menu.Item>
+              ) : null}
+              {isParent ? (
+                <Menu.Item
+                  className={ui.menuItem}
+                  onSelect={() => handlers.setOrdered(taskId, !task.ordered)}
+                >
+                  <Icon name="list" size={18} />{" "}
+                  {task.ordered ? "Make subtasks unordered" : "Make subtasks ordered"}
                 </Menu.Item>
               ) : null}
               <Menu.Separator className={ui.menuSep} />

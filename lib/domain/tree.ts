@@ -123,6 +123,29 @@ export function incompleteLeaves(index: TaskIndex): Task[] {
   return orderedLeaves(index).filter((t) => !t.done);
 }
 
+/**
+ * Incomplete leaves that can be worked on right now. Under an `ordered` parent a
+ * subtask is blocked until every earlier sibling is complete, cascading down: a
+ * leaf is blocked if it, or any ancestor, is blocked by an earlier sibling.
+ */
+export function availableLeaves(index: TaskIndex): Task[] {
+  const out: Task[] = [];
+  const walk = (list: readonly Task[], ordered: boolean) => {
+    for (const t of list) {
+      const kids = index.children.get(t.id);
+      if (!kids || kids.length === 0) {
+        if (!t.done) out.push(t);
+      } else {
+        walk(kids, t.ordered === true);
+      }
+      // In an ordered group, nothing after the first incomplete item is reachable.
+      if (ordered && !isComplete(index, t.id)) break;
+    }
+  };
+  walk(index.children.get(null) ?? [], false);
+  return out;
+}
+
 export function overallProgress(index: TaskIndex): TaskStats {
   let done = 0;
   let total = 0;

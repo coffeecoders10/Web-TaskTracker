@@ -18,6 +18,7 @@ export type Command =
   | { type: "task.add"; id: string; parentId: string | null; title: string }
   | { type: "task.update"; id: string; title?: string; notes?: string }
   | { type: "task.setDone"; id: string; done: boolean }
+  | { type: "task.setOrdered"; id: string; ordered: boolean }
   | { type: "task.delete"; id: string }
   | { type: "task.move"; id: string; parentId: string | null; index: number }
   | { type: "activity.add"; id: string; title: string }
@@ -159,6 +160,23 @@ export function applyCommand(doc: UserDoc, cmd: Command, now: number): UserDoc {
         tasks: doc.tasks.map((t) =>
           t.id === cmd.id ? { ...t, done, completedAt: done ? now : null } : t,
         ),
+      };
+    }
+
+    case "task.setOrdered": {
+      const target = doc.tasks.find((t) => t.id === cmd.id);
+      if (!target) throw new DomainError("Task not found.");
+      const ordered = cmd.ordered === true;
+      if ((target.ordered === true) === ordered) return doc;
+      return {
+        ...doc,
+        tasks: doc.tasks.map((t) => {
+          if (t.id !== cmd.id) return t;
+          const next = { ...t };
+          if (ordered) next.ordered = true;
+          else delete next.ordered;
+          return next;
+        }),
       };
     }
 
@@ -312,7 +330,7 @@ export function normalizeDoc(raw: unknown): UserDoc {
       const r = t as Record<string, unknown>;
       if (typeof r.id !== "string" || typeof r.title !== "string" || seenTasks.has(r.id)) continue;
       seenTasks.add(r.id);
-      tasks.push({
+      const task: Task = {
         id: r.id,
         parentId: typeof r.parentId === "string" ? r.parentId : null,
         title: r.title,
@@ -321,7 +339,9 @@ export function normalizeDoc(raw: unknown): UserDoc {
         order: typeof r.order === "number" ? r.order : tasks.length,
         createdAt: typeof r.createdAt === "number" ? r.createdAt : 0,
         completedAt: typeof r.completedAt === "number" ? r.completedAt : null,
-      });
+      };
+      if (r.ordered === true) task.ordered = true;
+      tasks.push(task);
     }
   }
 

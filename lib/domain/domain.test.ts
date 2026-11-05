@@ -5,6 +5,7 @@ import { dateKeyInZone, shiftDateKey } from "./dates";
 import { pickRandom } from "./random";
 import {
   ancestorsOf,
+  availableLeaves,
   incompleteLeaves,
   indexTasks,
   isComplete,
@@ -280,4 +281,19 @@ describe("validation & normalisation", () => {
     assert.equal(doc.prefs.dailyEnabled, true);
     assert.deepEqual(normalizeDoc("garbage").tasks, []);
   });
+});
+
+it("ordered parents only expose the first incomplete subtask, cascading", () => {
+  let d = EMPTY_DOC;
+  d = add(d, "p", null, "P");
+  d = add(d, "a", "p", "A");
+  d = add(d, "b", "p", "B");
+  d = add(d, "a1", "a", "A1");
+  d = add(d, "a2", "a", "A2");
+  const ids = (doc: typeof d) => availableLeaves(indexTasks(doc.tasks)).map((t) => t.id);
+  assert.equal(ids(d).length, 3);
+  d = run(d, { type: "task.setOrdered", id: "id-p".padEnd(8, "_"), ordered: true });
+  assert.deepEqual(ids(d), ["id-a1".padEnd(8, "_"), "id-a2".padEnd(8, "_")]);
+  d = run(d, { type: "task.setOrdered", id: "id-a".padEnd(8, "_"), ordered: true });
+  assert.deepEqual(ids(d), ["id-a1".padEnd(8, "_")]);
 });

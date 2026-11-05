@@ -5,7 +5,7 @@ import Link from "next/link";
 import { useState } from "react";
 import { useActions, useDoc } from "@/components/store/AppProvider";
 import { useCompleteTask } from "@/components/tasks/useCompleteTask";
-import { ancestorsOf, incompleteLeaves } from "@/lib/domain/tree";
+import { ancestorsOf, availableLeaves } from "@/lib/domain/tree";
 import { pickRandom } from "@/lib/domain/random";
 import { Icon } from "@/components/ui/Icon";
 import ui from "@/components/ui/ui.module.css";
@@ -36,7 +36,7 @@ function PickerBody({ close }: { close: () => void }) {
   const { addToday } = useActions();
   const complete = useCompleteTask();
 
-  const candidates = incompleteLeaves(index);
+  const candidates = availableLeaves(index);
   const [pickedId, setPickedId] = useState<string | null>(() => pickRandom(candidates)?.id ?? null);
   const [rolls, setRolls] = useState(0);
 
