@@ -117,6 +117,14 @@
   color: var(--text-3);
 }
 
+.orderMark {
+  flex: none;
+  display: grid;
+  place-items: center;
+  padding: 0 var(--s-1);
+  color: var(--text-3);
+}
+
 .nodeProgress {
   padding: 0 var(--s-1) var(--s-2) 28px;
   max-width: 280px;

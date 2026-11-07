@@ -1,5 +1,5 @@
 import { applyCommands, refreshDoc } from "@/actions/data";
-import { applyCommand, type Command } from "@/lib/domain/commands";
+import { applyCommand, pruneExpired, type Command } from "@/lib/domain/commands";
 import { indexTasks, type TaskIndex } from "@/lib/domain/tree";
 import { DomainError, type UserDoc } from "@/lib/domain/types";
 
@@ -93,6 +93,7 @@ export class DocStore {
         // Became invalid after a rebase; the server will report it too.
       }
     }
+    doc = pruneExpired(doc, now);
     return { doc, index: indexTasks(doc.tasks), saving: this.pending.length > 0 };
   }
 

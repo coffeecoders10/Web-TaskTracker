@@ -199,7 +199,13 @@ export function TasksView() {
                         onClick={() => toggleGroup(g.key)}
                       >
                         <Icon name="chevron" size={16} className={styles.chev} />
-                        {g.title}
+                        <span
+                          data-done={
+                            (g.key !== STANDALONE && g.total > 0 && g.done === g.total) || undefined
+                          }
+                        >
+                          {g.title}
+                        </span>
                       </button>
                     </h2>
                     {g.key !== STANDALONE ? (

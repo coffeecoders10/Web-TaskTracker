@@ -6,6 +6,7 @@ import { useRef } from "react";
 import { useDoc } from "@/components/store/AppProvider";
 import { Icon } from "@/components/ui/Icon";
 import { Progress } from "@/components/ui/Progress";
+import { isComplete } from "@/lib/domain/tree";
 import ui from "@/components/ui/ui.module.css";
 import { AddRow } from "./AddRow";
 import styles from "./plan.module.css";
@@ -51,6 +52,7 @@ export function PlanNode({
   const isParent = kids.length > 0;
   const open = isParent && handlers.isOpen(taskId, depth);
   const stats = index.stats.get(taskId);
+  const allDone = isParent ? isComplete(index, taskId) : task.done;
   const siblings = index.children.get(task.parentId) ?? [];
   const at = siblings.findIndex((s) => s.id === taskId);
   const adding = addingTo === taskId;
@@ -77,13 +79,20 @@ export function PlanNode({
           <span className={styles.chevron} data-open={open || undefined} data-empty={!isParent || undefined}>
             <Icon name="chevron" size={16} />
           </span>
-          {isParent && task.ordered ? (
-            <span className={styles.stat} title="Subtasks must be done in order">1→2</span>
-          ) : null}
-          <span className={styles.name} data-done={(!isParent && task.done) || undefined}>
+          <span className={styles.name} data-done={allDone || undefined}>
             {task.title}
           </span>
         </button>
+
+        {isParent && task.ordered ? (
+          <span
+            className={styles.orderMark}
+            title="Subtasks must be done in order"
+            aria-label="Subtasks must be done in order"
+          >
+            <Icon name="list" size={16} />
+          </span>
+        ) : null}
 
         {isParent && stats ? (
           <span className={styles.stat} aria-label={`${stats.done} of ${stats.total} done`}>
@@ -106,7 +115,7 @@ export function PlanNode({
           </Menu.Trigger>
           <Menu.Portal>
             <Menu.Content
-              className={ui.menu}
+              className={`${ui.menu} ${ui.menuScroll}`}
               align="end"
               sideOffset={4}
               collisionPadding={12}

@@ -186,6 +186,13 @@ textarea.input {
   animation: pop var(--dur-fast) var(--ease-out);
 }
 
+/* Fixed-height menu: six rows visible, the rest scrolls. */
+.menuScroll {
+  max-height: calc(6 * 40px + 2 * var(--s-1));
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+
 .menuItem {
   display: flex;
   align-items: center;
@@ -231,6 +238,9 @@ textarea.input {
 @media (max-width: 859px) {
   .menuItem {
     min-height: 48px;
+  }
+  .menuScroll {
+    max-height: calc(6 * 48px + 2 * var(--s-1));
   }
 }
 

@@ -15,8 +15,6 @@ import { EditTaskDialog, MoveTaskDialog } from "./PlanDialogs";
 import { PlanNode, type PlanHandlers } from "./PlanNode";
 import styles from "./plan.module.css";
 
-const DEFAULT_OPEN_DEPTH = 2;
-
 export function PlanView({ rootId, tabs }: { rootId: string | null; tabs?: ReactNode }) {
   const { index } = useDoc();
   const { dispatch } = useActions();
@@ -32,7 +30,7 @@ export function PlanView({ rootId, tabs }: { rootId: string | null; tabs?: React
   const siblings = index.children.get(rootId) ?? [];
 
   const isOpen = useCallback(
-    (id: string, depth: number) => openMap.get(id) ?? depth < DEFAULT_OPEN_DEPTH,
+    (id: string, _depth: number) => openMap.get(id) ?? false,
     [openMap],
   );
 
@@ -110,6 +108,14 @@ export function PlanView({ rootId, tabs }: { rootId: string | null; tabs?: React
     );
   }
 
+  const addRow = (
+    <AddRow
+      label={root ? "Add subtask" : "Add task"}
+      onAdd={(title) => addTask(rootId, title)}
+      onClose={() => setAddingTo(undefined)}
+    />
+  );
+
   const trail = root ? ancestorsOf(index, root.id) : [];
   const stats = root ? index.stats.get(root.id) : undefined;
 
@@ -158,6 +164,8 @@ export function PlanView({ rootId, tabs }: { rootId: string | null; tabs?: React
         </div>
       ) : null}
 
+      {addingTo === rootId && !root ? addRow : null}
+
       {siblings.length === 0 && addingTo !== rootId ? (
         <EmptyState
           title={root ? "No subtasks yet." : "Start with a goal."}
@@ -183,13 +191,7 @@ export function PlanView({ rootId, tabs }: { rootId: string | null; tabs?: React
         </ul>
       )}
 
-      {addingTo === rootId ? (
-        <AddRow
-          label={root ? "Add subtask" : "Add task"}
-          onAdd={(title) => addTask(rootId, title)}
-          onClose={() => setAddingTo(undefined)}
-        />
-      ) : null}
+      {addingTo === rootId && root ? addRow : null}
 
       {editing ? (
         <EditTaskDialog

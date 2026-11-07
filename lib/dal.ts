@@ -2,7 +2,7 @@ import "server-only";
 import { cache } from "react";
 import { redirect } from "next/navigation";
 import { createUserDoc, isEmptyRowError, readUserDoc, writeUserDoc } from "./backbone";
-import { applyCommand, normalizeDoc, type Command } from "./domain/commands";
+import { applyCommand, normalizeDoc, pruneExpired, type Command } from "./domain/commands";
 import { DomainError, EMPTY_DOC, type UserDoc } from "./domain/types";
 import { getSession, type Session } from "./session";
 
@@ -41,14 +41,14 @@ async function readExisting(userId: string): Promise<unknown | null> {
 /** Unserialised get-or-create. Only call from inside `serialized`. */
 async function readOrCreate(userId: string): Promise<UserDoc> {
   const raw = await readExisting(userId);
-  if (raw !== null) return normalizeDoc(raw);
+  if (raw !== null) return pruneExpired(normalizeDoc(raw), Date.now());
   try {
     await createUserDoc(userId, EMPTY_DOC);
     return EMPTY_DOC;
   } catch (err) {
     // Another instance may have created the row between our read and create.
     const again = await readExisting(userId).catch(() => null);
-    if (again !== null) return normalizeDoc(again);
+    if (again !== null) return pruneExpired(normalizeDoc(again), Date.now());
     throw err;
   }
 }

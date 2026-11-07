@@ -143,6 +143,12 @@
   overflow-wrap: anywhere;
 }
 
+.groupTitle [data-done] {
+  color: var(--text-3);
+  text-decoration: line-through;
+  text-decoration-color: var(--line-strong);
+}
+
 .tabsRow {
   display: flex;
   flex-wrap: wrap;

@@ -105,6 +105,40 @@ function checkDate(date: unknown, now: number): string {
   return date;
 }
 
+/** How long a finished top-level task stays in Done before it is removed. */
+export const DONE_RETENTION_MS = 2 * 24 * 60 * 60 * 1000;
+
+/**
+ * Drops top-level tasks (with all their subtasks) whose every leaf was completed
+ * more than {@link DONE_RETENTION_MS} ago. Returns the same document if nothing expired.
+ */
+export function pruneExpired(doc: UserDoc, now: number): UserDoc {
+  if (doc.tasks.length === 0) return doc;
+  const index = indexTasks(doc.tasks);
+  const doomed = new Set<string>();
+  for (const root of index.children.get(null) ?? []) {
+    const ids = subtreeIds(index, root.id);
+    let latest = 0;
+    let finished = true;
+    for (const id of ids) {
+      if ((index.children.get(id)?.length ?? 0) > 0) continue;
+      const leaf = index.byId.get(id)!;
+      if (!leaf.done) {
+        finished = false;
+        break;
+      }
+      latest = Math.max(latest, leaf.completedAt ?? 0);
+    }
+    // Without a completion time we can't tell how old it is, so keep it.
+    if (finished && latest > 0 && now - latest > DONE_RETENTION_MS) {
+      for (const id of ids) doomed.add(id);
+    }
+  }
+  if (doomed.size === 0) return doc;
+  const remaining = doc.tasks.filter((t) => !doomed.has(t.id));
+  return { ...doc, tasks: renumber(remaining, siblingIds(remaining, null)) };
+}
+
 export function applyCommand(doc: UserDoc, cmd: Command, now: number): UserDoc {
   switch (cmd.type) {
     case "task.add": {
@@ -116,13 +150,15 @@ export function applyCommand(doc: UserDoc, cmd: Command, now: number): UserDoc {
         throw new DomainError("Parent task not found.");
       }
       const siblings = siblingIds(doc.tasks, parentId);
+      // New top-level tasks go first; subtasks are appended.
+      const atTop = parentId === null;
       const task: Task = {
         id,
         parentId,
         title,
         notes: "",
         done: false,
-        order: siblings.length,
+        order: atTop ? 0 : siblings.length,
         createdAt: now,
         completedAt: null,
       };
@@ -132,7 +168,10 @@ export function applyCommand(doc: UserDoc, cmd: Command, now: number): UserDoc {
           ? { ...t, done: false, completedAt: null }
           : t,
       );
-      return { ...doc, tasks: [...tasks, task] };
+      return {
+        ...doc,
+        tasks: atTop ? [...renumber(tasks, [id, ...siblings]), task] : [...tasks, task],
+      };
     }
 
     case "task.update": {
