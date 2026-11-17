@@ -114,46 +114,58 @@ export function AppProvider({
   }, [store]);
 
   const [pickerOpen, setPickerOpen] = useState(false);
-  const [pickedIds, setPickedIds] = useState<readonly string[]>([]);
+  const [picks, setPicks] = useState<{ day: string; ids: readonly string[] }>({
+    day: initialToday,
+    ids: [],
+  });
   const [picksLoaded, setPicksLoaded] = useState(false);
 
-  // Picks persist in this browser and carry over across reloads and days until removed.
+  // Picks belong to the day they were made: tomorrow they go back to the list.
   const picksKey = `today-picks:${user.username}`;
   useEffect(() => {
     try {
       const raw = localStorage.getItem(picksKey);
-      const parsed: unknown = raw ? JSON.parse(raw) : [];
-      if (Array.isArray(parsed)) {
-        setPickedIds(parsed.filter((x): x is string => typeof x === "string"));
+      const parsed: unknown = raw ? JSON.parse(raw) : null;
+      const p = parsed as { day?: unknown; ids?: unknown } | null;
+      if (p && typeof p.day === "string" && Array.isArray(p.ids)) {
+        setPicks({
+          day: p.day,
+          ids: p.ids.filter((x): x is string => typeof x === "string"),
+        });
       }
     } catch {
-      // Ignore unreadable storage; start with an empty list.
+      // Ignore unreadable storage (or the old undated format); start empty.
     }
     setPicksLoaded(true);
   }, [picksKey]);
   useEffect(() => {
     if (!picksLoaded) return;
     try {
-      localStorage.setItem(picksKey, JSON.stringify(pickedIds));
+      localStorage.setItem(picksKey, JSON.stringify(picks));
     } catch {
       // Storage may be full or blocked; picks just won't persist.
     }
-  }, [picksKey, picksLoaded, pickedIds]);
+  }, [picksKey, picksLoaded, picks]);
 
-  // Finished picks stay (crossed out) until removed; deleted tasks drop out.
+  // Finished picks stay (crossed out) for the rest of the day; deleted tasks drop out.
   const todayIds = useMemo(
-    () => pickedIds.filter((id) => snapshot.index.byId.has(id)),
-    [pickedIds, snapshot.index],
+    () => (picks.day === today ? picks.ids.filter((id) => snapshot.index.byId.has(id)) : []),
+    [picks, today, snapshot.index],
   );
 
   const dispatch = useCallback((cmd: Command) => store.dispatch(cmd), [store]);
   const openPicker = useCallback(() => setPickerOpen(true), []);
   const addToday = useCallback(
-    (id: string) => setPickedIds((prev) => (prev.includes(id) ? prev : [...prev, id])),
-    [],
+    (id: string) =>
+      setPicks((prev) => {
+        const ids = prev.day === today ? prev.ids : [];
+        return ids.includes(id) ? prev : { day: today, ids: [...ids, id] };
+      }),
+    [today],
   );
   const removeToday = useCallback(
-    (id: string) => setPickedIds((prev) => prev.filter((x) => x !== id)),
+    (id: string) =>
+      setPicks((prev) => ({ ...prev, ids: prev.ids.filter((x) => x !== id) })),
     [],
   );
 
