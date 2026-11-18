@@ -1,0 +1,70 @@
+/* Fills whatever window hosts it. Display only: nothing here is interactive. */
+.widget {
+  height: 100dvh;
+  padding: var(--s-4);
+  overflow: hidden;
+  background: var(--bg);
+  user-select: none;
+  -webkit-user-select: none;
+  pointer-events: none;
+  cursor: default;
+}
+
+.list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-3);
+  height: 100%;
+  overflow: hidden;
+}
+
+.item {
+  display: flex;
+  align-items: center;
+  gap: var(--s-3);
+  min-width: 0;
+  flex: none;
+}
+
+.dot {
+  flex: none;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  border: 2px solid var(--accent);
+}
+
+.title {
+  min-width: 0;
+  font-size: var(--fs-md);
+  line-height: 1.3;
+  color: var(--text);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.item[data-done] .dot {
+  background: var(--text-3);
+  border-color: var(--text-3);
+}
+
+.item[data-done] .title {
+  color: var(--text-3);
+  text-decoration: line-through;
+}
+
+.more {
+  flex: none;
+  font-size: var(--fs-sm);
+  color: var(--text-3);
+  padding-left: calc(10px + var(--s-3));
+}
+
+.empty {
+  display: grid;
+  place-items: center;
+  height: 100%;
+  font-size: var(--fs-sm);
+  color: var(--text-3);
+}
